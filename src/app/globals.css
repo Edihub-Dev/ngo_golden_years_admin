@@ -1,0 +1,172 @@
+@import "tailwindcss";
+
+:root {
+  --background: #faf8f5;
+  --foreground: #2c3e50;
+  --primary: #3498db;
+  --primary-dark: #2980b9;
+  --secondary: #e74c3c;
+  --accent: #f39c12;
+  --success: #27ae60;
+  --warning: #f39c12;
+  --danger: #e74c3c;
+  --soft-blue: #ebf3fd;
+  --soft-green: #e8f8f5;
+  --soft-orange: #fef4e6;
+  --soft-red: #fdedec;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+html {
+  background: var(--background);
+}
+
+/* Elder-friendly styles */
+.text-large {
+  font-size: 1.125rem;
+}
+
+.text-xlarge {
+  font-size: 1.25rem;
+}
+
+.text-xxlarge {
+  font-size: 1.5rem;
+}
+
+.btn-large {
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+  border-radius: 0.75rem;
+  min-height: 3rem;
+}
+
+.input-large {
+  padding: 1rem;
+  font-size: 1.125rem;
+  border-radius: 0.5rem;
+  min-height: 3rem;
+}
+
+.card-soft {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.sos-button {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 5rem;
+  height: 5rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(231, 76, 60, 0.3);
+  transition: all 0.3s ease;
+  animation: pulse 2s infinite;
+}
+
+.sos-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 15px 35px rgba(231, 76, 60, 0.4);
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 10px 25px rgba(231, 76, 60, 0.3);
+  }
+  50% {
+    box-shadow: 0 10px 25px rgba(231, 76, 60, 0.5);
+  }
+  100% {
+    box-shadow: 0 10px 25px rgba(231, 76, 60, 0.3);
+  }
+}
+
+/* Smooth transitions */
+* {
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.fr-container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  max-width: 80rem;
+}
+
+@media (min-width: 640px) {
+  .fr-container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .fr-container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .fr-container {
+    max-width: 80rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  .fr-container {
+    max-width: 90rem;
+  }
+}
+
+.fr-section {
+  padding-top: 4.5rem;
+  padding-bottom: 4.5rem;
+}
+
+@media (min-width: 768px) {
+  .fr-section {
+    padding-top: 5.5rem;
+    padding-bottom: 5.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .fr-section {
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+  }
+}
+
+/* Custom Hide Scrollbar */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Marquee Animation */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 20s linear infinite;
+}
