@@ -84,7 +84,7 @@ export default function AdminSidebar({ className = '' }: AdminSidebarProps) {
         </div>
 
         <a 
-          href="http://localhost:3000/dashboard" 
+          href={`${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard`}
           className="flex items-center w-full px-6 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-xl transition-colors mb-1"
         >
           <HomeIcon className="h-5 w-5 mr-3" />
