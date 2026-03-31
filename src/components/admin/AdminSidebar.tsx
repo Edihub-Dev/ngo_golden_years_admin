@@ -6,6 +6,7 @@ import {
   DocumentTextIcon,
   UserGroupIcon,
   BanknotesIcon,
+  ChatBubbleBottomCenterTextIcon,
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline';
@@ -15,6 +16,7 @@ import { AuthManager } from '@/lib/auth';
 
 const sidebarItems = [
   { icon: HomeIcon, label: 'Dashboard', href: '/admin' },
+  { icon: ChatBubbleBottomCenterTextIcon, label: 'Inquiries', href: '/admin/inquiries' },
   { icon: DocumentTextIcon, label: 'Manage Blogs', href: '/admin/blogs' },
   { icon: UsersIcon, label: 'Users', href: '/admin/users' },
   { icon: DocumentTextIcon, label: 'Service Requests', href: '/admin/requests' },
@@ -80,6 +82,14 @@ export default function AdminSidebar({ className = '' }: AdminSidebarProps) {
             </p>
           </div>
         </div>
+
+        <a 
+          href="http://localhost:3000/dashboard" 
+          className="flex items-center w-full px-6 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-xl transition-colors mb-1"
+        >
+          <HomeIcon className="h-5 w-5 mr-3" />
+          User Dashboard
+        </a>
         
         <button
           onClick={handleLogout}

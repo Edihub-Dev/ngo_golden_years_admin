@@ -90,6 +90,14 @@ export class ApiClient {
   async delete<T>(url: string): Promise<ApiResponse<T>> {
     return this.request<T>(url, { method: 'DELETE' });
   }
+
+  // PATCH request
+  async patch<T>(url: string, data?: Record<string, unknown>): Promise<ApiResponse<T>> {
+    return this.request<T>(url, {
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  }
 }
 
 // Export singleton instance
