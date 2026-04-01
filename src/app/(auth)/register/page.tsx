@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 export default function Register() {
   const router = useRouter();
-  
+
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
@@ -52,14 +52,14 @@ export default function Register() {
 
     try {
       const { authApi } = await import('@/lib/api');
-      
-      const response = await authApi.register({ 
-        name: fullName, 
-        mobile: phone, 
+
+      const response = await authApi.register({
+        name: fullName,
+        mobile: phone,
         password,
         address
       });
-      
+
       if (response.success) {
         alert('Registration successful! Redirecting to login...');
         router.push('/login');
@@ -92,7 +92,7 @@ export default function Register() {
         <div className={cn('rounded-3xl', 'bg-white', 'shadow-xl', 'ring-1', 'ring-zinc-100', 'px-5', 'py-5')}>
           <div className={cn('text-center', 'mb-4')}>
             <h1 className={cn('text-xl', 'font-semibold', 'text-zinc-900')}>Create Your Account</h1>
-            <p className={cn('mt-0.5', 'text-xs', 'text-zinc-500')}>Join Careon in a few simple steps</p>
+            <p className={cn('mt-0.5', 'text-xs', 'text-zinc-500')}>Join Golden Years Care Foundation in a few simple steps</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
