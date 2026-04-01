@@ -155,6 +155,17 @@ export const AdminService = {
 
 export const adminApi = AdminService;
 
+export const blogApi = {
+  getAll: (params?: any) => {
+    const query = params ? `?${new URLSearchParams(params).toString()}` : '';
+    return apiClient.get(`/api/blogs${query}`);
+  },
+  getById: (id: string) => apiClient.get(`/api/blogs/${id}`),
+  create: (data: any) => apiClient.post('/api/blogs', data),
+  update: (id: string, data: any) => apiClient.put(`/api/blogs/${id}`, data),
+  delete: (id: string) => apiClient.delete(`/api/blogs/${id}`),
+};
+
 export const BlogService = {
   getAll: (params?: any) => {
     const query = params ? `?${new URLSearchParams(params).toString()}` : '';
