@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
-import { authApi } from '@/lib/api';
+import { AuthService } from '@/lib/api';
 import { validationRules, Validator } from '@/lib/validation';
 
 export default function VerifyOTP() {
@@ -72,7 +72,7 @@ export default function VerifyOTP() {
     setLoading(true);
 
     try {
-      const response = await authApi.forgotPasswordVerifyOTP(mobile, otpValue);
+      const response = await AuthService.forgotPasswordVerifyOTP(mobile, otpValue);
 
       if (response.success) {
         // Store OTP for reset-password page
@@ -94,7 +94,7 @@ export default function VerifyOTP() {
 
     setLoading(true);
     try {
-      const response = await authApi.forgotPasswordSendOTP(mobile);
+      const response = await AuthService.forgotPasswordSendOTP(mobile);
       if (response.success) {
         setResendTimer(30);
         setOtp(['', '', '', '', '', '']);

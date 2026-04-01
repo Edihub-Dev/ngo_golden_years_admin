@@ -1,368 +1,394 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { 
-  DocumentTextIcon, 
-  MagnifyingGlassIcon,
-  EyeIcon,
-  CheckIcon,
-  CheckCircleIcon,
-  XMarkIcon,
-  MapPinIcon
-} from '@heroicons/react/24/outline';
+  ClipboardListIcon, 
+  SearchIcon, 
+  DownloadIcon, 
+  CalendarIcon, 
+  RefreshCwIcon,
+  CheckCircle2Icon,
+  ClockIcon,
+  AlertCircleIcon,
+  UserIcon,
+  MapPinIcon,
+  PhoneIcon,
+  FilterIcon,
+  UserCheckIcon,
+  ChevronRightIcon,
+  Trash2Icon
+} from 'lucide-react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import Link from 'next/link';
+import { AdminService } from '@/lib/api';
 import { AuthManager } from '@/lib/auth';
-import { apiClient } from '@/lib/api';
-import { cn } from "../../../lib/utils";
+import toast from 'react-hot-toast';
+import * as XLSX from 'xlsx';
+import RoleGuard from '@/components/admin/RoleGuard';
+import { cn } from '@/lib/utils';
 
-interface ServiceRequest {
-  _id: string;
-  user: {
-    _id: string;
-    name: string;
-    mobile: string;
-  };
-  serviceType: string;
-  customServiceName?: string;
-  description: string;
-  urgency: string;
-  status: string;
-  address?: {
-    coordinates?: {
-      lat: number;
-      lng: number;
-    }
-  };
-  createdAt: string;
-}
+const STATUS_CONFIG: any = {
+  pending: { label: 'Pending', color: 'bg-amber-100 text-amber-700 border-amber-200' },
+  assigned: { label: 'Assigned', color: 'bg-blue-100 text-blue-700 border-blue-200' },
+  in_progress: { label: 'In Progress', color: 'bg-indigo-100 text-indigo-700 border-indigo-200' },
+  completed: { label: 'Completed', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+  cancelled: { label: 'Cancelled', color: 'bg-slate-100 text-slate-700 border-slate-200' },
+  rejected: { label: 'Rejected', color: 'bg-rose-100 text-rose-700 border-rose-200' },
+};
 
-export default function AdminRequests() {
-  const router = useRouter();
-  const authManager = AuthManager.getInstance();
-  
-  const [requests, setRequests] = useState<ServiceRequest[]>([]);
+export default function ServiceRequestsPage() {
+  const searchParams = useSearchParams();
+  const [requests, setRequests] = useState<any[]>([]);
+  const [staff, setStaff] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [filters, setFilters] = useState({ 
+    search: searchParams.get('search') || '', 
+    status: '', 
+    startDate: '', 
+    endDate: '' 
+  });
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
 
   useEffect(() => {
-    authManager.setRouter(router);
-    
-    // Check admin authentication
-    const authState = authManager.requireAdmin();
-    if (!authState.isAuthenticated) {
-      return; // Will redirect
-    }
-    
+    setUser(AuthManager.getInstance().getUser());
     fetchRequests();
-  }, [router]);
+    fetchStaff();
+  }, [filters.status, filters.search, filters.startDate, filters.endDate]); // Re-fetch on filter change
 
   const fetchRequests = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await apiClient.get<any>('/api/admin/requests');
-      
-      if (response.success && response.data) {
-        // Handle unwrapping the backend pagination/requests object
-        const fetchedData = response.data.requests ? response.data.requests : response.data;
-        setRequests(fetchedData || []);
-      } else {
-        throw new Error(response.error?.message || 'Failed to fetch requests');
+      const res = await AdminService.getRequests(filters);
+      if (res.success) {
+        setRequests(res.data.requests || []);
       }
     } catch (error) {
-      console.error('Failed to fetch requests:', error);
-      setError(error instanceof Error ? error.message : 'Failed to fetch requests');
+      toast.error('Failed to load service requests');
     } finally {
       setLoading(false);
     }
   };
 
-  // Memoized filtered requests for performance
-  const filteredRequests = useMemo(() => {
-    return requests.filter(request => {
-      const matchesSearch = 
-        request.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.serviceType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.description?.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesStatus = statusFilter === 'all' || request.status === statusFilter;
-      
-      return matchesSearch && matchesStatus;
-    });
-  }, [requests, searchTerm, statusFilter]);
-
-  const handleAction = async (requestId: string, action: string) => {
-    if (actionLoading) return;
-    
+  const fetchStaff = async () => {
     try {
-      setActionLoading(requestId);
-      
-      const response = await apiClient.put(`/api/admin/requests/${requestId}/status`, { 
-        status: action 
-      });
-      
-      if (response.success) {
-        // Refresh requests list
-        await fetchRequests();
-      } else {
-        throw new Error(response.error?.message || `Failed to ${action} request`);
+      const res = await AdminService.getStaff();
+      if (res.success) setStaff(res.data.staff || []);
+    } catch (err) {}
+  };
+
+  const handleUpdateStatus = async (id: string, status: string) => {
+    try {
+      const res = await AdminService.updateRequestStatus(id, status);
+      if (res.success) {
+        toast.success(`Request marked as ${status}`);
+        fetchRequests();
       }
-    } catch (error) {
-      console.error(`Failed to ${action} request:`, error);
-      const errorMessage = error instanceof Error ? error.message : `Failed to ${action} request`;
-      alert(errorMessage);
-    } finally {
-      setActionLoading(null);
+    } catch (err) {
+      toast.error('Failed to update status');
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'in_progress': return 'bg-blue-100 text-blue-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to permanently delete this service request? This action cannot be undone.')) return;
+    try {
+      const res = await AdminService.deleteRequest(id);
+      if (res.success) {
+        toast.success('Service request deleted locally');
+        fetchRequests();
+      }
+    } catch (err) {
+      toast.error('Failed to delete request');
     }
   };
 
-  const getUrgencyColor = (urgency: string) => {
-    switch (urgency) {
-      case 'high': return 'bg-red-100 text-red-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'low': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const handleAssignStaff = async (staffId: string) => {
+    if (!selectedRequest) return;
+    try {
+      const res = await AdminService.assignStaffToRequest(selectedRequest._id, staffId);
+      if (res.success) {
+        toast.success('Staff assigned successfully');
+        setIsAssignModalOpen(false);
+        fetchRequests();
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Assignment failed');
     }
   };
 
-  if (loading) {
-    return (
-      <div className={cn('min-h-screen', 'bg-gray-50', 'flex', 'items-center', 'justify-center')}>
-        <div className="text-center">
-          <div className={cn('animate-spin', 'rounded-full', 'h-12', 'w-12', 'border-b-2', 'border-blue-600', 'mx-auto')}></div>
-          <p className={cn('mt-4', 'text-gray-600')}>Loading service requests...</p>
-        </div>
-      </div>
-    );
-  }
+  const downloadXLSX = () => {
+    if (requests.length === 0) return toast.error('No data to export');
+    const data = requests.map(r => ({
+      ID: r._id,
+      User: r.user?.name,
+      Mobile: r.user?.mobile,
+      Service: r.customServiceName || r.serviceType.replace('_', ' '),
+      Status: r.status.toUpperCase(),
+      Requested_Date: new Date(r.requestedDate).toLocaleDateString(),
+      Amount: r.payment?.amount || 0,
+      Assigned_Staff: r.assignedStaff?.map((a: any) => a.staff?.name).join(', ') || 'N/A'
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "ServiceRequests");
+    XLSX.writeFile(wb, `service_requests_${new Date().toISOString().split('T')[0]}.xlsx`);
+    toast.success('Report exported');
+  };
 
-  if (error) {
-    return (
-      <div className={cn('min-h-screen', 'bg-gray-50', 'flex', 'items-center', 'justify-center')}>
-        <div className="text-center max-w-md mx-auto p-6">
-          <DocumentTextIcon className={cn('h-12', 'w-12', 'text-red-600', 'mx-auto', 'mb-4')} />
-          <h2 className={cn('text-xl', 'font-semibold', 'text-gray-900', 'mb-2')}>Error Loading Requests</h2>
-          <p className={cn('text-gray-600', 'mb-6')}>{error}</p>
-          <button
-            onClick={fetchRequests}
-            className={cn('px-4', 'py-2', 'bg-blue-600', 'text-white', 'rounded-lg', 'hover:bg-blue-700')}
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const filteredCount = requests.length;
 
   return (
-    <div className={cn('min-h-screen', 'bg-gray-50', 'flex')}>
-      <AdminSidebar />
-      
-      {/* Main Content */}
-      <div className={cn('flex-1', 'p-8')}>
-        <div className={cn('mb-8')}>
-          <h1 className={cn('text-2xl', 'font-bold', 'text-gray-900')}>Service Requests</h1>
-          <p className="text-gray-600">View and manage all service requests</p>
-        </div>
-
-        {/* Filters */}
-        <div className="mb-6 flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                className={cn('block', 'w-full', 'pl-10', 'pr-3', 'py-2', 'border', 'border-gray-300', 'rounded-md', 'leading-5', 'bg-white', 'placeholder-gray-500', 'focus:outline-none', 'focus:placeholder-gray-400', 'focus:ring-1', 'focus:ring-blue-500', 'focus:border-blue-500', 'sm:text-sm')}
-                placeholder="Search requests..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+    <RoleGuard allowedRoles={['admin', 'subadmin']}>
+      <div className="min-h-screen bg-slate-50 flex flex-col lg:flex-row">
+        <AdminSidebar />
+        
+        <main className="flex-1 p-4 lg:p-8 max-w-7xl mx-auto w-full">
+          {/* Header */}
+          <div className="mb-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                Service Lifecycle
+                <span className="text-[10px] font-black bg-blue-100 text-blue-600 px-3 py-1 rounded-xl tracking-widest uppercase">
+                  {filteredCount} Orders
+                </span>
+              </h1>
+              <p className="text-slate-400 font-bold text-sm mt-1">Manage eldercare service requests and staff assignment</p>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={downloadXLSX} className="flex items-center gap-2 px-6 py-3 bg-white hover:bg-slate-50 text-slate-700 rounded-2xl font-black text-xs tracking-tight border-2 border-slate-100 shadow-sm transition-all">
+                <DownloadIcon className="h-4 w-4 text-emerald-500" />
+                REPORT XLSX
+              </button>
+              <button onClick={fetchRequests} className="p-3.5 bg-white hover:bg-slate-50 text-blue-600 rounded-2xl border-2 border-slate-100 shadow-sm transition-all">
+                <RefreshCwIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              </button>
             </div>
           </div>
-          
-          <div className="sm:w-48">
-            <select
-              className={cn('block', 'w-full', 'pl-3', 'pr-10', 'py-2', 'text-base', 'border-gray-300', 'focus:outline-none', 'focus:ring-blue-500', 'focus:border-blue-500', 'sm:text-sm', 'rounded-md')}
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="in_progress">In Progress</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-        </div>
 
-        {/* Requests Table */}
-        <div className={cn('bg-white', 'shadow', 'overflow-hidden', 'sm:rounded-md')}>
-          <div className={cn('px-4', 'py-5', 'sm:px-6')}>
-            <h3 className={cn('text-lg', 'leading-6', 'font-medium', 'text-gray-900')}>
-              All Requests ({filteredRequests.length})
-            </h3>
+          {/* Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div className="md:col-span-2 relative">
+              <input 
+                type="text" 
+                placeholder="Search by user or service..." 
+                value={filters.search}
+                onChange={e => setFilters({...filters, search: e.target.value})}
+                className="w-full pl-12 pr-4 py-4 bg-white border-2 border-slate-100 rounded-2xl text-xs font-bold shadow-sm outline-none focus:border-blue-500 transition-all"
+              />
+              <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300" />
+            </div>
+            <select 
+              value={filters.status}
+              onChange={e => setFilters({...filters, status: e.target.value})}
+              className="px-5 py-4 bg-white border-2 border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-700 outline-none cursor-pointer"
+            >
+              <option value="">All Statuses</option>
+              {Object.keys(STATUS_CONFIG).map(s => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}
+            </select>
+            <div className="bg-white px-4 py-2 rounded-2xl border-2 border-slate-100 shadow-sm flex items-center justify-between">
+                <div className="flex items-center">
+                  <CalendarIcon className="h-3.5 w-3.5 text-slate-300 mr-2" />
+                  <input 
+                    type="date" 
+                    value={filters.startDate}
+                    onChange={e => setFilters({...filters, startDate: e.target.value})}
+                    className="text-[9px] font-black text-slate-800 outline-none bg-transparent uppercase" 
+                  />
+                </div>
+                <div className="h-4 w-px bg-slate-100 mx-2" />
+                <div className="flex items-center">
+                  <input 
+                    type="date" 
+                    value={filters.endDate}
+                    onChange={e => setFilters({...filters, endDate: e.target.value})}
+                    className="text-[9px] font-black text-slate-800 outline-none bg-transparent uppercase text-right" 
+                  />
+                </div>
+            </div>
           </div>
-          
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    User
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Service
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Description
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Urgency
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredRequests.map((request) => (
-                  <tr key={request._id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                            <span className="text-sm font-medium text-gray-700">
-                              {request.user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                            </span>
+
+          {/* Grid of Requests */}
+          <div className="grid grid-cols-1 gap-4">
+            {loading ? (
+              Array(4).fill(0).map((_, i) => <div key={i} className="h-40 bg-white rounded-3xl animate-pulse" />)
+            ) : requests.length === 0 ? (
+              <div className="text-center py-20 bg-white rounded-3xl border border-slate-100">
+                <ClipboardListIcon className="h-12 w-12 text-slate-100 mx-auto mb-4" />
+                <h3 className="text-lg font-black text-slate-900">No Orders Found</h3>
+              </div>
+            ) : (
+              requests.map(request => (
+                <div key={request._id} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/50 hover:shadow-2xl transition-all group">
+                  <div className="flex flex-col lg:flex-row justify-between gap-6">
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <button 
+                             onClick={() => handleDelete(request._id)}
+                             disabled={user?.role !== 'admin'}
+                             className="p-1.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all disabled:opacity-20"
+                             title="Purge Record"
+                          >
+                             <Trash2Icon className="h-4 w-4" />
+                          </button>
+                          <span className="text-[10px] font-black text-slate-900 uppercase tracking-tighter">Order ID: #{request._id.toUpperCase()}</span>
+                        </div>
+                        <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ${STATUS_CONFIG[request.status]?.color || ''}`}>
+                          {STATUS_CONFIG[request.status]?.label || request.status}
+                        </span>
+                      </div>
+                      
+                      <div className="flex items-start gap-5">
+                        <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100 text-blue-600 shadow-sm">
+                          <ClipboardListIcon className="h-6 w-6" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-black text-slate-900 leading-tight mb-1">
+                            {request.customServiceName || request.serviceType.replace('_', ' ').toUpperCase()}
+                          </h3>
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 lowercase">
+                              <UserIcon className="h-3 w-3" /> {request.user?.name || 'Unknown User'}
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400">
+                              <CalendarIcon className="h-3 w-3" /> {new Date(request.requestedDate).toLocaleDateString()}
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs font-black text-blue-600 uppercase tracking-tighter">
+                               ₹{request.payment?.amount || 0}
+                            </div>
                           </div>
                         </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{request.user?.name}</div>
-                          <div className="text-sm text-gray-500">{request.user?.mobile}</div>
+                      </div>
+
+                      <div className="mt-6 flex flex-wrap gap-4 pt-6 border-t border-slate-50">
+                        <div className="flex items-center gap-2">
+                           <MapPinIcon className="h-3.5 w-3.5 text-slate-300" />
+                           <span className="text-[10px] font-bold text-slate-500 truncate max-w-xs">{request.address?.street}, {request.address?.city}</span>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900 capitalize">
-                        {request.serviceType === 'custom' 
-                          ? (request.customServiceName || 'Custom Request')
-                          : (request.serviceType?.replace('_', ' ') || 'Unknown')}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900 max-w-xs truncate">
-                        {request.description || 'No description'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getUrgencyColor(request.urgency)}`}>
-                        {request.urgency || 'medium'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(request.status)}`}>
-                        {request.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(request.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className={cn('flex', 'items-center', 'space-x-2')}>
-                        {/* View Location */}
-                        {request.address?.coordinates?.lat && request.address?.coordinates?.lng && (
+                        <div className="flex items-center gap-2">
+                           <PhoneIcon className="h-3.5 w-3.5 text-slate-300" />
+                           <span className="text-[10px] font-bold text-slate-500">{request.user?.mobile}</span>
+                        </div>
+                        {(request.serviceType === 'emergency_help' || request.serviceType === 'emergency') && request.address?.coordinates?.lat && (
                           <a 
-                            href={`https://maps.google.com/?q=${request.address.coordinates.lat},${request.address.coordinates.lng}`}
+                            href={`https://www.google.com/maps?q=${request.address.coordinates.lat},${request.address.coordinates.lng}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={cn('p-2', 'text-orange-600', 'hover:text-orange-900')}
-                            title="View Live Location"
+                            className="flex items-center gap-2 px-3 py-1 bg-red-50 text-red-600 rounded-lg group/map border border-red-100 hover:bg-red-100 transition-colors"
                           >
-                            <MapPinIcon className={cn('h-5', 'w-5')} />
+                             <MapPinIcon className="h-3.5 w-3.5 animate-bounce" />
+                             <span className="text-[9px] font-black uppercase">View Live Location</span>
                           </a>
                         )}
-
-                        <button 
-                          className={cn('p-2', 'text-blue-600', 'hover:text-blue-900', 'disabled:opacity-50')}
-                          disabled={actionLoading === request._id}
-                        >
-                          <EyeIcon className={cn('h-5', 'w-5')} />
-                        </button>
-                        {/* Mark as In Progress */}
-                        {request.status === 'pending' && (
-                          <button 
-                            className={cn('p-2', 'text-green-600', 'hover:text-green-900', 'disabled:opacity-50')}
-                            title="Mark as In Progress"
-                            disabled={actionLoading === request._id}
-                            onClick={() => handleAction(request._id, 'in_progress')}
-                          >
-                            <CheckIcon className={cn('h-5', 'w-5')} />
-                          </button>
-                        )}
-                        
-                        {/* Mark as Completed */}
-                        {request.status === 'in_progress' && (
-                          <button 
-                            className={cn('p-2', 'text-emerald-600', 'hover:text-emerald-900', 'disabled:opacity-50')}
-                            title="Mark as Completed"
-                            disabled={actionLoading === request._id}
-                            onClick={() => handleAction(request._id, 'completed')}
-                          >
-                            <CheckCircleIcon className={cn('h-5', 'w-5')} />
-                          </button>
-                        )}
-
-                        {/* Cancel Request */}
-                        {request.status !== 'completed' && request.status !== 'cancelled' && (
-                          <button 
-                            className={cn('p-2', 'text-red-600', 'hover:text-red-900', 'disabled:opacity-50')}
-                            title="Cancel Request"
-                            disabled={actionLoading === request._id}
-                            onClick={() => handleAction(request._id, 'cancelled')}
-                          >
-                            <XMarkIcon className={cn('h-5', 'w-5')} />
-                          </button>
-                        )}
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row lg:flex-col justify-center gap-3 min-w-[240px]">
+                      {/* Status Control Dropdown */}
+                      <div className="relative group/status">
+                        <select 
+                          value={request.status}
+                          onChange={(e) => handleUpdateStatus(request._id, e.target.value)}
+                          className={cn(
+                            "w-full px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest outline-none border-2 cursor-pointer transition-all",
+                            STATUS_CONFIG[request.status]?.color || "bg-white border-slate-100"
+                          )}
+                        >
+                          {Object.keys(STATUS_CONFIG).map(s => (
+                            <option key={s} value={s} className="bg-white text-slate-900">{STATUS_CONFIG[s].label}</option>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      <button 
+                        onClick={() => { setSelectedRequest(request); setIsAssignModalOpen(true); }}
+                        className={cn(
+                          "px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 border-2",
+                          request.assignedStaff?.length > 0
+                            ? "bg-emerald-50 border-emerald-100 text-emerald-700 hover:bg-emerald-100"
+                            : "bg-white border-slate-100 text-slate-700 hover:bg-slate-50"
+                        )}
+                      >
+                        <UserCheckIcon className="h-4 w-4" />
+                        {request.assignedStaff?.length > 0 
+                          ? `Update Caregiver`
+                          : "Assign Professional"}
+                      </button>
+
+                      {/* Explicit Action Buttons for common flows */}
+                      {request.status === 'pending' && (
+                        <button 
+                          onClick={() => handleUpdateStatus(request._id, 'assigned')}
+                          className="px-6 py-3 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-all"
+                        >
+                          Quick Approve
+                        </button>
+                      )}
+
+                      {request.assignedStaff?.length > 0 && (
+                        <div className="mt-2 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                          <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Active Professional</p>
+                          <div className="flex items-center gap-2">
+                             <div className="h-5 w-5 rounded-md bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-black">
+                                {request.assignedStaff[0].staff?.name?.charAt(0) || '?'}
+                             </div>
+                             <p className="text-[10px] font-black text-slate-700 truncate">{request.assignedStaff[0].staff?.name || 'Assigned'}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
-          
-          {filteredRequests.length === 0 && (
-            <div className={cn('text-center', 'py-12')}>
-              <DocumentTextIcon className={cn('h-12', 'w-12', 'text-gray-400', 'mx-auto', 'mb-4')} />
-              <p className="text-gray-500">No service requests found</p>
-            </div>
-          )}
-        </div>
+        </main>
+
+        {/* Assignment Modal */}
+        {isAssignModalOpen && (
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+             <div className="bg-white rounded-[2.5rem] w-full max-w-xl max-h-[85vh] overflow-hidden flex flex-col shadow-2xl animate-in zoom-in-95 duration-400">
+                <div className="p-8 border-b flex justify-between items-center bg-slate-50/50">
+                    <div>
+                      <h2 className="text-xl font-black text-slate-900">Deploy Professional</h2>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Assign staff to order #{selectedRequest?._id.slice(-6)}</p>
+                    </div>
+                    <button onClick={() => setIsAssignModalOpen(false)} className="p-3 bg-white border border-slate-100 rounded-xl text-slate-300 hover:text-slate-600 transition-all">
+                      <ClockIcon className="h-6 w-6" />
+                    </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-6 space-y-3 custom-scrollbar">
+                   {staff.filter(s => s.isActive && s.services.includes(selectedRequest?.serviceType)).length === 0 ? (
+                     <div className="text-center py-10">
+                        <AlertCircleIcon className="h-10 w-10 text-rose-100 mx-auto mb-3" />
+                        <p className="text-sm font-black text-slate-400">No compatible staff online</p>
+                     </div>
+                   ) : (
+                    staff.filter(s => s.isActive && s.services.includes(selectedRequest?.serviceType)).map(member => (
+                      <div key={member._id} className="p-5 bg-white border-2 border-slate-50 rounded-2xl hover:border-blue-200 transition-all flex items-center justify-between group">
+                         <div className="flex items-center gap-4">
+                            <div className="h-12 w-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-black text-lg">
+                              {member.name.charAt(0)}
+                            </div>
+                            <div>
+                               <p className="text-sm font-black text-slate-900">{member.name}</p>
+                               <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{member.role} • {member.experience} Yrs Exp</p>
+                            </div>
+                         </div>
+                         <button 
+                            onClick={() => handleAssignStaff(member._id)}
+                            className="p-3 bg-slate-50 text-slate-400 group-hover:bg-blue-600 group-hover:text-white rounded-xl transition-all"
+                         >
+                            <ChevronRightIcon className="h-5 w-5" />
+                         </button>
+                      </div>
+                    ))
+                   )}
+                </div>
+             </div>
+          </div>
+        )}
       </div>
-    </div>
+    </RoleGuard>
   );
 }

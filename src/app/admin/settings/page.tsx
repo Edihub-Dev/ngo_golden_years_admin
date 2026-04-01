@@ -31,17 +31,15 @@ export default function AdminSettings() {
 
   const fetchSettings = async () => {
     try {
-      const { authFetch } = await import('@/lib/auth');
-      const response = await authFetch('/api/admin/settings');
-      const data = await response.json();
-      if (response.ok && data.success) {
-        setSettings(data.settings);
+      const { AdminService } = await import('@/lib/api');
+      const response = await AdminService.getSettings();
+      if (response.success && response.data) {
+        setSettings(response.data.settings || response.data);
       } else {
-        alert('Failed to load settings from server: ' + (data.message || 'Unknown error'));
+        alert('Failed to load settings: ' + (response.error?.message || 'Unknown error'));
       }
     } catch (error: any) {
       console.error('Failed to fetch settings:', error);
-      alert('Network Error: Could not connect to settings API. Check backend connectivity.');
     } finally {
       setLoading(false);
     }
@@ -50,17 +48,12 @@ export default function AdminSettings() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const { authFetch } = await import('@/lib/auth');
-      const res = await authFetch('/api/admin/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings)
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        alert('Settings saved to database successfully!');
+      const { AdminService } = await import('@/lib/api');
+      const response = await AdminService.updateSettings(settings);
+      if (response.success) {
+        alert('Settings saved successfully!');
       } else {
-        alert('Failed to save settings: ' + (data.message || 'Server error'));
+        alert('Failed to save: ' + (response.error?.message || 'Server error'));
       }
     } catch (err: any) {
       alert('Save failed: ' + err.message);

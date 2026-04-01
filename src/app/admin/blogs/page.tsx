@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
-import { blogApi } from '@/lib/api';
+import { BlogService } from '@/lib/api';
 import { PlusIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
 
 interface Blog {
@@ -37,7 +37,7 @@ export default function AdminBlogs() {
 
   const fetchBlogs = async () => {
     try {
-      const response = await blogApi.getAll();
+      const response = await BlogService.getAll();
       if (response.success) {
         setBlogs(response.data as Blog[]);
       }
@@ -52,13 +52,13 @@ export default function AdminBlogs() {
     e.preventDefault();
     try {
       if (editingBlog) {
-        const response = await blogApi.update(editingBlog._id, formData);
+        const response = await BlogService.update(editingBlog._id, formData);
         if (response.success) {
           alert('Blog updated successfully');
           setEditingBlog(null);
         }
       } else {
-        const response = await blogApi.create(formData);
+        const response = await BlogService.create(formData);
         if (response.success) {
           alert('Blog created successfully');
         }
@@ -75,7 +75,7 @@ export default function AdminBlogs() {
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this blog?')) return;
     try {
-      const response = await blogApi.delete(id);
+      const response = await BlogService.delete(id);
       if (response.success) {
         alert('Blog deleted successfully');
         fetchBlogs();

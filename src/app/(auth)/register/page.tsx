@@ -51,9 +51,9 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const { authApi } = await import('@/lib/api');
+      const { AuthService } = await import('@/lib/api');
 
-      const response = await authApi.register({
+      const response = await AuthService.register({
         name: fullName,
         mobile: phone,
         password,

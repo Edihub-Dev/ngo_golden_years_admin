@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon, PhoneIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
-import { authApi } from '@/lib/api';
+import { AuthService } from '@/lib/api';
 import { validationRules, Validator } from '@/lib/validation';
 
 export default function ForgotPassword() {
@@ -33,7 +33,7 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      const response = await authApi.forgotPasswordSendOTP(mobile);
+      const response = await AuthService.forgotPasswordSendOTP(mobile);
 
       if (response.success) {
         // Store mobile in sessionStorage for verify-otp page

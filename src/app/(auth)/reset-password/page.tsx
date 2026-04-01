@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon, LockClosedIcon, LockOpenIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
-import { authApi } from '@/lib/api';
+import { AuthService } from '@/lib/api';
 
 export default function ResetPassword() {
   const router = useRouter();
@@ -59,7 +59,7 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
-      const response = await authApi.resetPassword(mobile, otp, password);
+      const response = await AuthService.resetPassword(mobile, otp, password);
 
       if (response.success) {
         setSuccess(true);

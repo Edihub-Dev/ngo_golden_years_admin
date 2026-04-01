@@ -19,8 +19,8 @@ export default function AdminLayout({
 
     if (!state.isAuthenticated) {
       router.push('/login');
-    } else if (state.user?.role !== 'admin') {
-      router.push('/login'); // Or a forbidden page
+    } else if (state.user?.role !== 'admin' && state.user?.role !== 'subadmin') {
+      router.push('/login'); 
     } else {
       setIsAuthorized(true);
     }
