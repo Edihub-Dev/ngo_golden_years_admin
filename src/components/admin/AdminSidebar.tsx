@@ -25,7 +25,7 @@ const navItems = [
   { icon: MessageSquareIcon, label: 'Inquiries', href: '/admin/inquiries', roles: ['admin', 'subadmin'] },
   { icon: NewspaperIcon, label: 'Manage Blogs', href: '/admin/blogs', roles: ['admin'] },
   { icon: GroupIcon, label: 'Membership', href: '/admin/membership', roles: ['admin', 'subadmin'] },
-  { icon: UsersIcon, label: 'Sub-Admins', href: '/admin/staff', roles: ['admin'] },
+  { icon: UsersIcon, label: 'Manage Staff', href: '/admin/staff', roles: ['admin'] },
   { icon: CreditCardIcon, label: 'Payments', href: '/admin/payments', roles: ['admin', 'subadmin'] },
   { icon: Settings2Icon, label: 'Settings', href: '/admin/settings', roles: ['admin'] },
 ];

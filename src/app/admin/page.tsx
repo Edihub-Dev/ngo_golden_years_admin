@@ -13,7 +13,8 @@ import {
   ClockIcon,
   UserCheckIcon,
   MapPinIcon,
-  MessageSquareIcon
+  MessageSquareIcon,
+  AccessibilityIcon
 } from 'lucide-react';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 import RoleGuard from '@/components/admin/RoleGuard';
@@ -203,6 +204,54 @@ export default function AdminDashboard() {
                  </div>
               </div>
             )}
+          </div>
+
+          {/* Operational Breakdown */}
+          <div className="mb-12">
+            <h2 className="text-xs font-black text-slate-300 uppercase tracking-[0.4em] mb-6 flex items-center gap-2 px-1">
+              Operational Sync Breakdown
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 group hover:border-blue-200 transition-all">
+                <div className="h-12 w-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <ActivityIcon className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Doctor Visits</p>
+                  <p className="text-xl font-black text-slate-900">{analytics?.services?.doctor_visit || 0}</p>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 group hover:border-emerald-200 transition-all">
+                <div className="h-12 w-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                   <UserCheckIcon className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Nursing Care</p>
+                  <p className="text-xl font-black text-slate-900">{analytics?.services?.nurse_care || 0}</p>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 group hover:border-indigo-200 transition-all">
+                <div className="h-12 w-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <AccessibilityIcon className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Physiotherapy</p>
+                  <p className="text-xl font-black text-slate-900">{analytics?.services?.physiotherapy || 0}</p>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-5 group hover:border-rose-200 transition-all">
+                <div className="h-12 w-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <AlertTriangleIcon className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Emergency SOS</p>
+                  <p className="text-xl font-black text-slate-900">{analytics?.services?.emergency_help || 0}</p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Activity Matrix */}

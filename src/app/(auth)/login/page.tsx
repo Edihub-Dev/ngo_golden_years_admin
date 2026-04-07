@@ -268,7 +268,7 @@ export default function AdminLogin() {
           {/* Footer */}
           <div className="mt-10 pt-8 border-t border-slate-100 flex items-center justify-between">
             <Link
-              href="http://localhost:3000"
+              href={process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000'}
               className="text-[11px] font-bold text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors"
             >
               ← Main Portal
