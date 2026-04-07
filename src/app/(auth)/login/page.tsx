@@ -201,7 +201,7 @@ export default function AdminLogin() {
                 <DevicePhoneMobileIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 pointer-events-none" />
                 <input
                   type="tel"
-                  placeholder="e.g. 9876543210"
+                  placeholder="+91 0000000000"
                   value={mobile}
                   onChange={(e) => {
                     setMobile(e.target.value.replace(/\D/g, '').slice(0, 10));
