@@ -76,31 +76,32 @@ export default function AdminSettings() {
           <p className="text-gray-600">Configure global NGO platform configurations</p>
         </div>
 
-        <div className="bg-white shadow rounded-lg overflow-hidden flex min-h-[500px]">
+        <div className="bg-white shadow rounded-lg overflow-hidden flex flex-col md:flex-row min-h-[500px]">
           {/* Settings Tabs */}
-          <div className="w-64 bg-gray-50 border-r py-4 flex flex-col">
+          <div className="w-full md:w-64 bg-gray-50 border-b md:border-b-0 md:border-r pt-2 md:py-4 flex md:flex-col">
             <button 
               onClick={() => setActiveTab('general')}
-              className={`text-left px-6 py-3 font-medium transition-colors flex items-center ${activeTab === 'general' ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}
+              className={`flex-1 text-center md:text-left px-2 md:px-6 py-3 text-xs md:text-base font-medium transition-colors flex items-center justify-center md:justify-start ${activeTab === 'general' ? 'bg-blue-50 text-blue-700 border-b-2 md:border-b-0 md:border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}
             >
-              <BuildingOfficeIcon className="w-5 h-5 mr-3" />
+              <BuildingOfficeIcon className="w-4 h-4 md:w-5 md:h-5 mr-1.5 md:mr-3" />
               Organization
             </button>
             <button 
               onClick={() => setActiveTab('notifications')}
-              className={`text-left px-6 py-3 font-medium transition-colors flex items-center ${activeTab === 'notifications' ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}
+              className={`flex-1 text-center md:text-left px-2 md:px-6 py-3 text-xs md:text-base font-medium transition-colors flex items-center justify-center md:justify-start ${activeTab === 'notifications' ? 'bg-blue-50 text-blue-700 border-b-2 md:border-b-0 md:border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}
             >
-              <BellIcon className="w-5 h-5 mr-3" />
+              <BellIcon className="w-4 h-4 md:w-5 md:h-5 mr-1.5 md:mr-3" />
               Notifications
             </button>
             <button 
               onClick={() => setActiveTab('security')}
-              className={`text-left px-6 py-3 font-medium transition-colors flex items-center ${activeTab === 'security' ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}
+              className={`flex-1 text-center md:text-left px-2 md:px-6 py-3 text-xs md:text-base font-medium transition-colors flex items-center justify-center md:justify-start ${activeTab === 'security' ? 'bg-blue-50 text-blue-700 border-b-2 md:border-b-0 md:border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}
             >
-              <ShieldCheckIcon className="w-5 h-5 mr-3" />
+              <ShieldCheckIcon className="w-4 h-4 md:w-5 md:h-5 mr-1.5 md:mr-3" />
               Security
             </button>
           </div>
+
 
           {/* Settings Content */}
           <div className="flex-1 p-8">
