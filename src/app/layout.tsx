@@ -5,6 +5,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Golden Years Care Foundation - Dignity, Care & Companionship for Elders",
   description: "A nonprofit foundation dedicated to providing dignity, care, and companionship for elders.",
+  icons: {
+    icon: '/assets/SITE%20LOGO.png',
+  },
 };
 
 export default function RootLayout({
