@@ -252,11 +252,10 @@ export async function authFetch(url: string, options: RequestInit = {}): Promise
     headers['Authorization'] = `Bearer ${token}`;
   }
   
-  // Directly point to the backend URL if using environment variables to avoid Next.js proxy 503 errors on Vercel
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
-  const fetchUrl = url.startsWith('/api') && baseUrl ? `${baseUrl}${url}` : url;
-  
-  console.log(`[API DEBUG] Requesting: ${fetchUrl} (BaseURL: ${baseUrl || 'not set'})`);
+  // Always use relative URLs so Next.js rewrites proxy the request server-side.
+  // NEVER prepend NEXT_PUBLIC_API_URL on the client — 'localhost' is unreachable
+  // from any browser on a different machine or network connection.
+  const fetchUrl = url.startsWith('/') ? url : `/${url}`;
   
   const response = await fetch(fetchUrl, {
     ...options,
