@@ -7,6 +7,40 @@ import { useState, useEffect } from 'react';
 
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+
+  // Auto-hide navbar after inactivity
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    const handleActivity = () => {
+      setIsVisible(true);
+      if (timeoutId) clearTimeout(timeoutId);
+
+      // Only set hide timeout if no menus are open
+      if (!isMenuOpen) {
+        timeoutId = setTimeout(() => {
+          setIsVisible(false);
+        }, 1000);
+      }
+    };
+
+    // Initial timeout
+    if (!isMenuOpen) {
+      timeoutId = setTimeout(() => {
+        setIsVisible(false);
+      }, 1000);
+    }
+
+    window.addEventListener('mousemove', handleActivity);
+    window.addEventListener('scroll', handleActivity);
+
+    return () => {
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('scroll', handleActivity);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [isMenuOpen]);
 
   // Close menu when scrolling
   useEffect(() => {
@@ -23,13 +57,21 @@ export default function Navigation() {
     <>
       {/* Invisible Overlay for click-outside closure */}
       {isMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 md:hidden bg-transparent"
           onClick={closeMenu}
         />
       )}
 
-      <div className="fixed top-6 left-1/2 -translate-x-1/2 w-[92%] max-w-5xl z-50">
+      <motion.div
+        initial={{ y: 0, opacity: 1 }}
+        animate={{
+          y: isVisible || isMenuOpen ? 0 : -100,
+          opacity: isVisible || isMenuOpen ? 1 : 0
+        }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        className="fixed top-6 left-1/2 -translate-x-1/2 w-[92%] max-w-5xl z-50"
+      >
         <nav className="bg-white/80 backdrop-blur-xl rounded-full px-6 py-2 border border-black/5 shadow-[0_8px_32px_0_rgba(0,0,0,0.06)] flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center px-3 py-1.5 rounded-xl space-x-2" onClick={closeMenu}>
@@ -82,7 +124,7 @@ export default function Navigation() {
             </div>
           </motion.div>
         )}
-      </div>
+      </motion.div>
     </>
   );
 }
