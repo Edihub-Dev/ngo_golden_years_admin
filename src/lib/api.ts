@@ -151,6 +151,12 @@ export const AdminService = {
 
   // Inquiry Management
   deleteInquiry: (id: string) => apiClient.delete<any>(`/api/admin/inquiries/${id}`),
+
+  // Donation Management
+  getDonations: (params?: any) => {
+    const query = params ? `?${new URLSearchParams(params).toString()}` : '';
+    return apiClient.get<any>(`/api/admin/donations${query}`);
+  },
 };
 
 export const adminApi = AdminService;
