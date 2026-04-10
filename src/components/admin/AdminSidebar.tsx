@@ -1,6 +1,6 @@
 'use client';
 
-import { 
+import {
   BarChart3Icon,
   UsersIcon,
   NewspaperIcon,
@@ -24,6 +24,7 @@ const navItems = [
   { icon: MessageSquareIcon, label: 'Service Requests', href: '/admin/requests', roles: ['admin', 'subadmin'] },
   { icon: MessageSquareIcon, label: 'Inquiries', href: '/admin/inquiries', roles: ['admin', 'subadmin'] },
   { icon: NewspaperIcon, label: 'Manage Blogs', href: '/admin/blogs', roles: ['admin'] },
+  { icon: GroupIcon, label: 'Governing Body', href: '/admin/founders', roles: ['admin'] },
   { icon: GroupIcon, label: 'Membership', href: '/admin/membership', roles: ['admin', 'subadmin'] },
   { icon: UsersIcon, label: 'Manage Staff', href: '/admin/staff', roles: ['admin'] },
   { icon: CreditCardIcon, label: 'Payments', href: '/admin/payments', roles: ['admin', 'subadmin'] },
@@ -46,14 +47,14 @@ export default function AdminSidebar() {
     auth.logout();
   };
 
-  const filteredItems = navItems.filter(item => 
+  const filteredItems = navItems.filter(item =>
     !user || item.roles.includes(user.role || 'subadmin')
   );
 
   return (
     <>
       {/* Mobile Toggle Button */}
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
         className="lg:hidden fixed top-6 right-6 z-[60] p-4 bg-blue-600 text-white rounded-2xl shadow-xl shadow-blue-600/20 active:scale-95 transition-all"
       >
@@ -62,7 +63,7 @@ export default function AdminSidebar() {
 
       {/* Backdrop for mobile */}
       {isOpen && (
-        <div 
+        <div
           onClick={() => setIsOpen(false)}
           className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[50] lg:hidden animate-in fade-in duration-300"
         />
@@ -81,7 +82,7 @@ export default function AdminSidebar() {
             <span className="text-2xl font-black text-white tracking-tighter">Golden Admin</span>
           </Link>
         </div>
-        
+
         {/* Primary Navigation */}
         <nav className="mt-10 flex-1 px-6 space-y-2 overflow-y-auto hide-scrollbar">
           {filteredItems.map((item, index) => {
@@ -91,11 +92,10 @@ export default function AdminSidebar() {
                 key={index}
                 href={item.href}
                 onClick={() => setIsOpen(false)}
-                className={`flex items-center px-5 py-4 text-sm font-black rounded-2xl transition-all duration-300 group ${
-                  isActive
+                className={`flex items-center px-5 py-4 text-sm font-black rounded-2xl transition-all duration-300 group ${isActive
                     ? 'text-white bg-blue-600 shadow-2xl shadow-blue-600/30 -translate-y-0.5'
                     : 'hover:text-white hover:bg-slate-800/60'
-                }`}
+                  }`}
               >
                 <item.icon className={`h-5 w-5 mr-4 transition-colors ${isActive ? 'text-white' : 'text-slate-500 group-hover:text-blue-400'}`} />
                 <span className="tracking-tight">{item.label}</span>
@@ -108,9 +108,9 @@ export default function AdminSidebar() {
         <div className="p-6 mt-auto bg-slate-900/40 border-t border-slate-800/50">
           <div className="px-4 py-3 bg-slate-800/30 rounded-[1.5rem] flex items-center space-x-3 mb-6 ring-2 ring-slate-800/50 hover:bg-slate-800/50 transition-colors">
             <div className={`h-9 w-9 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-2xl ring-2 ring-white/10 
-              ${user?.role === 'admin' ? 'bg-gradient-to-br from-blue-500 to-blue-700 shadow-blue-900/30' : 
-                user?.role === 'subadmin' ? 'bg-gradient-to-br from-indigo-500 to-indigo-700 shadow-indigo-900/30' : 
-                'bg-gradient-to-br from-slate-500 to-slate-700 shadow-slate-900/30'}`}>
+              ${user?.role === 'admin' ? 'bg-gradient-to-br from-blue-500 to-blue-700 shadow-blue-900/30' :
+                user?.role === 'subadmin' ? 'bg-gradient-to-br from-indigo-500 to-indigo-700 shadow-indigo-900/30' :
+                  'bg-gradient-to-br from-slate-500 to-slate-700 shadow-slate-900/30'}`}>
               {user?.name?.charAt(0) || 'A'}
             </div>
             <div className="flex-1 min-w-0">
@@ -120,14 +120,14 @@ export default function AdminSidebar() {
           </div>
 
           <div className="space-y-2">
-            <a 
+            <a
               href={`${process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://ngocareoldfrontend.vercel.app'}/dashboard`}
               className="flex items-center w-full px-5 py-3.5 text-[11px] font-black text-slate-400 hover:text-white hover:bg-blue-600/10 rounded-2xl transition-all group uppercase tracking-widest"
             >
               <ExternalLinkIcon className="h-4 w-4 mr-4 text-slate-500 group-hover:text-blue-400" />
               Web Platform
             </a>
-            
+
             <button
               onClick={handleLogout}
               className="flex items-center w-full px-5 py-3.5 text-[11px] font-black text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-2xl transition-all group uppercase tracking-widest"
